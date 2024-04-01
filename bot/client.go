@@ -10,7 +10,6 @@ package bot
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -18,7 +17,9 @@ import (
 
 	"github.com/corpix/uarand"
 	"github.com/go-errors/errors"
+	"github.com/z3ntl3/VidmolySpoof/globals"
 	"github.com/z3ntl3/VidmolySpoof/models"
+	"go.mongodb.org/mongo-driver/bson"
 	"h12.io/socks"
 
 	"github.com/antchfx/htmlquery"
@@ -65,6 +66,9 @@ func NewClient(timeout time.Duration) *Client {
 	}
 }
 
+/*
+to unveil underlying m3u8 master manifestation
+*/
 func (c *Client) UnveilManifest(url string) (*ManifestLink, error) {
 	workerPool := make(chan struct {
 		Err  error
@@ -121,7 +125,6 @@ func (c *Client) UnveilManifest(url string) (*ManifestLink, error) {
 		select {
 		case task := <-workerPool:
 			if task.Err != nil {
-				fmt.Println(task.Err.Error())
 				continue
 			}
 			return &task.Link, nil
@@ -132,9 +135,52 @@ func (c *Client) UnveilManifest(url string) (*ManifestLink, error) {
 	}
 }
 
-func (c *Client) Stream(ctx models.Playlist, path string) (io.ReadCloser, error) {
-	// TODO
-	return nil, nil
+/*
+To obtain data rapidly about the vidmoly stream
+*/
+func StreamCore(molyLink string) (*models.StreamData, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+
+	task := make(chan struct {
+		Err error
+		Res models.StreamData
+	})
+
+	go func(worker chan<- struct {
+		Err error
+		Res models.StreamData
+	},
+	) {
+		var err error
+		var res models.StreamData
+
+		defer func(res_ *models.StreamData, err_ *error) {
+			worker <- struct {
+				Err error
+				Res models.StreamData
+			}{
+				Err: *err_,
+				Res: *res_,
+			}
+		}(&res, &err)
+
+		err = globals.MongoClient.Collection(models.StreamCol).FindOne(ctx, bson.M{
+			"$match": bson.M{
+				"vidmoly_alias": molyLink,
+			},
+		}).Decode(&res)
+	}(task)
+
+	select {
+	case v := <-task:
+		return &v.Res, v.Err
+	case <-ctx.Done():
+		{
+			v := <-task
+			return nil, v.Err
+		}
+	}
 }
 
 func build_headers(req *http.Request) {
