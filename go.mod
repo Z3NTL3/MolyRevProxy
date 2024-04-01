@@ -1,4 +1,4 @@
-module github.com/z3ntl3/VidmolySpoof
+module github.com/z3ntl3/MolyRevProxy
 
 go 1.21.1
 

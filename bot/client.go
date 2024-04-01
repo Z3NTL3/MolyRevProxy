@@ -17,8 +17,8 @@ import (
 
 	"github.com/corpix/uarand"
 	"github.com/go-errors/errors"
-	"github.com/z3ntl3/VidmolySpoof/globals"
-	"github.com/z3ntl3/VidmolySpoof/models"
+	"github.com/z3ntl3/MolyRevProxy/globals"
+	"github.com/z3ntl3/MolyRevProxy/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"h12.io/socks"
 
@@ -70,13 +70,13 @@ func NewClient(timeout time.Duration) *Client {
 }
 
 /*
-to unveil underlying m3u8 master manifestation
+to unveil underlying m3u8 manifest
 */
-func (c *Client) UnveilManifest(url string) (*ManifestCtx, error) {
+func (c *Client) GetManifest(url string, init bool) (*ManifestCtx, error) {
 	workerPool := make(chan struct {
 		Err error
 		Ctx ManifestCtx
-	}, 500)
+	}, 5)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
@@ -84,7 +84,7 @@ func (c *Client) UnveilManifest(url string) (*ManifestCtx, error) {
 	go func(pool chan struct {
 		Err error
 		Ctx ManifestCtx
-	},
+	}, master bool,
 	) {
 		for i := 0; i < cap(pool); i++ {
 			go func() {
@@ -123,6 +123,13 @@ func (c *Client) UnveilManifest(url string) (*ManifestCtx, error) {
 					return
 				}
 
+				if !master {
+					ctx.Headers = req.Header
+					ctx.Raw = string(body)
+
+					return
+				}
+
 				link, err := ObtainManifest(strings.NewReader(string(body)))
 				if err != nil {
 					return
@@ -137,7 +144,7 @@ func (c *Client) UnveilManifest(url string) (*ManifestCtx, error) {
 				ctx.Raw = data
 			}()
 		}
-	}(workerPool)
+	}(workerPool, init)
 
 	for {
 		select {

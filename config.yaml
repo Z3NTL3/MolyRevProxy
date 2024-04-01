@@ -4,3 +4,6 @@ database:
 
 threading:
   cores: 8 # how much cores to use
+
+server:
+  domain: "simpaix.net"

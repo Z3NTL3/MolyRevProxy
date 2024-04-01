@@ -17,10 +17,10 @@ import (
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
 	"github.com/spf13/viper"
-	"github.com/z3ntl3/VidmolySpoof/db"
-	httpServer "github.com/z3ntl3/VidmolySpoof/http"
-	"github.com/z3ntl3/VidmolySpoof/http/routes"
-	vld "github.com/z3ntl3/VidmolySpoof/http/validator"
+	"github.com/z3ntl3/MolyRevProxy/db"
+	httpServer "github.com/z3ntl3/MolyRevProxy/http"
+	"github.com/z3ntl3/MolyRevProxy/http/routes"
+	vld "github.com/z3ntl3/MolyRevProxy/http/validator"
 )
 
 func main() {

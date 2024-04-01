@@ -24,12 +24,12 @@ type Manifests[T M3U8] struct {
 
 type Playlist struct {
 	Master Manifests[*m3u8.MasterPlaylist]
-	Main   Manifests[*m3u8.MediaPlaylist]
+	Main   []Manifests[*m3u8.MediaPlaylist]
 }
 
 // mongo collection 'streams'
 type StreamData []struct {
-	ID                 primitive.ObjectID `json:"omitempty,_id"`
+	ID                 primitive.ObjectID `json:"_id,omitempty"`
 	VidmolyAlias       string             `json:"vidmoly_alias"`
 	HLS_PlaylistRemote string             `json:"hls_remote"`
 	/*

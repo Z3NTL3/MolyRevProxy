@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/spf13/viper"
-	"github.com/z3ntl3/VidmolySpoof/globals"
+	globals "github.com/z3ntl3/MolyRevProxy/globals"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
