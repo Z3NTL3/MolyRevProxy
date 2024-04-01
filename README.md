@@ -1,6 +1,6 @@
 # Vidmoly HLS Stream Spoof
 
-A reverse proxy server to spoof and bypass remote HLS playlists thoroughly.
+A reverse proxy server to spoof and bypass Vidmoly's remote HLS playlists thoroughly.
 
 ##### Software progression
 
@@ -8,13 +8,11 @@ This software is soon to be complete, stay tuned.
 
 ## Todo
 
-[ x ] Manifestation unveiler
-
-[ x ] Proxy programmable interface support
-
-[ ] Throughout dynamic reverse proxied  m3u8 playlist stream
-
-[ ] m3u8 playlist parser and generator
+- [X] master manfistation unveiler from vidmoly alias
+- [X] proxy programmable interface support
+- [X] m3u8 playlist parser and manipulator interface
+- [X] remote origin master, media manifest dyn manipulating interface
+- [ ] Complete dynamic reverse proxied  m3u8 playlist stream
 
 
 ## Credit
