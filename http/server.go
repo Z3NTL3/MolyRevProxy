@@ -30,6 +30,10 @@ type Routes struct {
 
 func (s *Server) RegisterRoutes(routes *[]Routes) {
 	for _, v := range *routes {
+		if v.Group != nil {
+			v.Group.Handle(v.Method, v.Path, v.HandleFuncs...)
+			continue
+		}
 		s.Handle(v.Method, v.Path, v.HandleFuncs...)
 	}
 }

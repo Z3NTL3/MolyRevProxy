@@ -55,7 +55,10 @@ type Client struct {
 	*http.Client
 }
 
-type ManifestLink = string
+type ManifestCtx struct {
+	Headers http.Header
+	Raw     string
+}
 
 func NewClient(timeout time.Duration) *Client {
 	return &Client{
@@ -69,68 +72,83 @@ func NewClient(timeout time.Duration) *Client {
 /*
 to unveil underlying m3u8 master manifestation
 */
-func (c *Client) UnveilManifest(url string) (*ManifestLink, error) {
+func (c *Client) UnveilManifest(url string) (*ManifestCtx, error) {
 	workerPool := make(chan struct {
-		Err  error
-		Link ManifestLink
+		Err error
+		Ctx ManifestCtx
 	}, 500)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
-	go func(pool chan<- struct {
-		Err  error
-		Link ManifestLink
+	go func(pool chan struct {
+		Err error
+		Ctx ManifestCtx
 	},
 	) {
-		var err error
-		var link string
+		for i := 0; i < cap(pool); i++ {
+			go func() {
+				var err error
+				var ctx ManifestCtx
 
-		defer func(err_ *error, link_ *string) {
-			pool <- struct {
-				Err  error
-				Link string
-			}{
-				Err:  *err_,
-				Link: *link_,
-			}
-		}(&err, &link)
+				defer func(err_ *error, ctx_ *ManifestCtx) {
+					pool <- struct {
+						Err error
+						Ctx ManifestCtx
+					}{
+						Err: *err_,
+						Ctx: *ctx_,
+					}
+				}(&err, &ctx)
 
-		req, err := http.NewRequest(http.MethodGet, url, nil)
-		if err != nil {
-			return
+				req, err := http.NewRequest(http.MethodGet, url, nil)
+				if err != nil {
+					return
+				}
+
+				build_headers(req)
+				res, err := c.Client.Do(req)
+				if err != nil {
+					return
+				}
+				defer res.Body.Close()
+
+				body, err := io.ReadAll(res.Body)
+				if err != nil {
+					return
+				}
+
+				if res.StatusCode != 200 {
+					err = errors.Errorf("Status code '%d' with body %s", res.StatusCode, body)
+					return
+				}
+
+				link, err := ObtainManifest(strings.NewReader(string(body)))
+				if err != nil {
+					return
+				}
+
+				data, err := c.read_manifest(req, link)
+				if err != nil {
+					return
+				}
+
+				ctx.Headers = req.Header
+				ctx.Raw = data
+			}()
 		}
-
-		build_headers(req)
-		res, err := c.Client.Do(req)
-		if err != nil {
-			return
-		}
-		defer res.Body.Close()
-
-		body, err := io.ReadAll(res.Body)
-		if err != nil {
-			return
-		}
-
-		if res.StatusCode != 200 {
-			err = errors.Errorf("Status code '%d' with body %s", res.StatusCode, body)
-			return
-		}
-
-		link, err = ObtainManifest(strings.NewReader(string(body)))
 	}(workerPool)
 
 	for {
 		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+
 		case task := <-workerPool:
 			if task.Err != nil {
 				continue
 			}
-			return &task.Link, nil
-		case <-ctx.Done():
-			v := <-workerPool
-			return nil, v.Err
+			return &task.Ctx, nil
 		}
 	}
 }
@@ -183,9 +201,41 @@ func StreamCore(molyLink string) (*models.StreamData, error) {
 	}
 }
 
+func (c *Client) read_manifest(req *http.Request, link string) (string, error) {
+	var err error
+	var result string
+
+	req, err = http.NewRequest(http.MethodGet, link, nil)
+	if err != nil {
+		return result, err
+	}
+
+	build_headers(req)
+	res, err := c.Client.Do(req)
+	if err != nil {
+		return result, err
+	}
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return result, err
+	}
+
+	if res.StatusCode != 200 {
+		err = errors.Errorf("Status code '%d' with body %s", res.StatusCode, body)
+		return result, err
+	}
+
+	result = string(body)
+	return result, err
+}
+
 func build_headers(req *http.Request) {
 	req.Header.Add("User-Agent", uarand.GetRandom())
 	req.Header.Add("Cache-Control", "no-store")
+	req.Header.Add("Origin", "https://vidmoly.to")
+	req.Header.Add("Referer", "https://vidmoly.to/")
 }
 
 func (c *Client) DelProxy() {

@@ -1,3 +1,6 @@
 database:
   name: "vidmoly_spoof" #db name
   uri: "mongodb://localhost:27017" # connection uri
+
+threading:
+  cores: 8 # how much cores to use

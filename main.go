@@ -10,17 +10,27 @@ package main
 
 import (
 	"net/http"
+	"runtime"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
+	"github.com/spf13/viper"
+	"github.com/z3ntl3/VidmolySpoof/db"
 	httpServer "github.com/z3ntl3/VidmolySpoof/http"
 	"github.com/z3ntl3/VidmolySpoof/http/routes"
 	vld "github.com/z3ntl3/VidmolySpoof/http/validator"
 )
 
 func main() {
+	db.ReadConfig()
+	db.Connect(viper.GetStringMap("database")["uri"].(string))
+
+	{
+		runtime.GOMAXPROCS(viper.GetStringMap("threading")["cores"].(int))
+	}
+
 	server := httpServer.Server{Engine: gin.New()}
 
 	validator_ := &vld.Validator{
@@ -44,7 +54,7 @@ func main() {
 		{
 			Method:      http.MethodGet,
 			Path:        "/manifest",
-			HandleFuncs: []gin.HandlerFunc{routes.HLS_Stream},
+			HandleFuncs: []gin.HandlerFunc{routes.Manifest_Stream},
 			Group:       server.Engine.Group("/stream"),
 		},
 	}

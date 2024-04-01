@@ -19,15 +19,17 @@ import (
 func ReadConfig() {
 	var err error
 	defer func(err_ *error) {
-		fmt.Println(errors.New(*err_).ErrorStack())
-		os.Exit(-1)
+		if err != nil {
+			fmt.Println(errors.New(*err_).ErrorStack())
+			os.Exit(-1)
+		}
 	}(&err)
 
 	cwd, err := os.Getwd()
 
 	viper.AddConfigPath(cwd)
 	viper.SetConfigName("config")
-	viper.SetConfigFile("yaml")
+	viper.SetConfigType("yaml")
 
 	err = viper.ReadInConfig()
 }
