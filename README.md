@@ -1,6 +1,6 @@
 # Vidmoly HLS Stream Spoof
 
-A reverse proxy server to spoof and bypass Vidmoly's remote HLS playlists thoroughly.
+A reverse proxy server to spoof and manipulate Vidmoly's remote HLS playlists thoroughly.
 
 ##### Software progression
 
