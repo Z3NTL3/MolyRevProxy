@@ -18,6 +18,7 @@ import (
 
 	"github.com/corpix/uarand"
 	"github.com/go-errors/errors"
+	"github.com/z3ntl3/VidmolySpoof/models"
 	"h12.io/socks"
 
 	"github.com/antchfx/htmlquery"
@@ -129,6 +130,11 @@ func (c *Client) UnveilManifest(url string) (*ManifestLink, error) {
 			return nil, v.Err
 		}
 	}
+}
+
+func (c *Client) Stream(ctx models.Playlist, path string) (io.ReadCloser, error) {
+	// TODO
+	return nil, nil
 }
 
 func build_headers(req *http.Request) {

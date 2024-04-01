@@ -8,12 +8,26 @@ License: GNU
 */
 package models
 
-import "go.mongodb.org/mongo-driver/bson/primitive"
+import (
+	"github.com/grafov/m3u8"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
 
-// mongo collection 'stream'
+type Playlist[T any] struct {
+	ManConf T `json:"man_conf"`      // stringified JSON of the dynamically manipulated  manifest
+	OrnConf T `json:"original_conf"` // stringified JSON of the manifest
+}
+
+// mongo collection 'streams'
 type StreamData struct {
 	ID                 primitive.ObjectID `json:"omitempty,_id"`
 	VidmolyAlias       string             `json:"vidmoly_alias"`
 	HLS_PlaylistRemote string             `json:"hls_remote"`
-	PlaylistConf       string             `json:"playlist_conf"` // stringified JSON of the dynamically manipulated config
+	/*
+		This will enable to reverse proxy and manipulate target HLS playlist configurations
+	*/
+	Master Playlist[m3u8.MasterPlaylist] `json:"master_manifest"`
+	Media  Playlist[m3u8.MediaPlaylist]  `json:"media_manifest"`
 }
+
+const StreamCol string = "streams"
