@@ -14,6 +14,6 @@ import "go.mongodb.org/mongo-driver/bson/primitive"
 type StreamData struct {
 	ID                 primitive.ObjectID `json:"omitempty,_id"`
 	VidmolyAlias       string             `json:"vidmoly_alias"`
-	HLS_PlaylistRemote string             `hls_remote`
-	PlaylistConf       string             `playlist_conf` // stringified JSON of the dynamically manipulated config
+	HLS_PlaylistRemote string             `json:"hls_remote"`
+	PlaylistConf       string             `json:"playlist_conf"` // stringified JSON of the dynamically manipulated config
 }
