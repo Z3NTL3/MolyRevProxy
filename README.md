@@ -8,13 +8,13 @@ This software is soon to be complete, stay tuned.
 
 ## Todo
 
-[x] Manifestation unveiler
+[ x ] Manifestation unveiler
 
-[x] Proxy programmable interface support
+[ x ] Proxy programmable interface support
 
-[] Throughout dynamic reverse proxied  m3u8 playlist stream
+[ ] Throughout dynamic reverse proxied  m3u8 playlist stream
 
-[] m3u8 playlist parser and generator
+[ ] m3u8 playlist parser and generator
 
 
 ## Credit
